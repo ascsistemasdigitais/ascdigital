@@ -13,12 +13,13 @@ import {
 
 // ⚠️ SUBSTITUA PELAS SUAS CREDENCIAIS REAIS DO FIREBASE CONSOLE
 const firebaseConfig = {
-  apiKey: "AIzaSyBSElbhr-e-CcpQ2FE8btxy1IJoVT-pcq8",
-  authDomain: "meuprojeto.firebaseapp.com",
-  projectId: "meuprojeto",
-  storageBucket: "meuprojeto.firebasestorage.app",
-  messagingSenderId: "306744419215",
-  appId: "1:306744419215:web:1b2ed7a3270d9e799021fa"
+  apiKey: "AIzaSyAbgF4rh9O4XMLJew2aWDzJoFR_oD-JtVY",
+  authDomain: "ascdigital.firebaseapp.com",
+  projectId: "ascdigital",
+  storageBucket: "ascdigital.firebasestorage.app",
+  messagingSenderId: "163815134757",
+  appId: "1:163815134757:web:588521c177bf5baabd51cc",
+  measurementId: "G-WFV14J0JF3"
 };
 
 const app = initializeApp(firebaseConfig);
