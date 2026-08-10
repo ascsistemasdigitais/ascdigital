@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASC Digital - Sistema de Gestão</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- TELA DE LOGIN -->
+<div id="loginScreen" class="login-screen">
+    <div class="login-left">
+        <div class="login-left-content">
+            <div class="logo-container">
+                <img src="logo.png" alt="Logo ASC Digital" class="logo-img">
+                <div class="logo-divider"></div>
+                <div class="logo-slogan">Soluções em tecnologia com excelência</div>
+            </div>
+            <div class="login-info">
+                <p><i class="fas fa-map-marker-alt"></i> ASC Digital - Soluções Tecnológicas</p>
+                <p><i class="fas fa-phone"></i> (11) 96400-9152</p>
+                <p><i class="fas fa-globe"></i> www.ascdigital.com.br</p>
+            </div>
+        </div>
+    </div>
+    <div class="login-right">
+        <div class="login-form-container">
+            <div class="login-header">
+                <h2>Bem-vindo ao Sistema</h2>
+                <p>Informe suas credenciais para acessar a plataforma.</p>
+            </div>
+            <div id="loginError" class="error-message" style="display: none;">
+                <i class="fas fa-exclamation-circle"></i>
+                <span>Usuário ou senha incorretos!</span>
+            </div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="loginUser">Usuário ou Email</label>
+                    <input type="text" id="loginUser" placeholder="Digite seu usuário ou email" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPass">Senha</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="loginPass" placeholder="Digite sua senha" required>
+                        <button type="button" class="toggle-password" onclick="togglePassword()">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-options">
+                    <label class="checkbox-label">
+                        <input type="checkbox"> Lembrar-me
+                    </label>
+                    <a href="#" class="forgot-link" onclick="showForgotPassword(); return false;">Esqueci a senha</a>
+                </div>
+                <button type="submit" class="btn-login">
+                    <i class="fas fa-sign-in-alt"></i> Entrar
+                </button>
+            </form>
+            <div class="login-footer">
+                <a href="https://www.ascdigital.com.br" target="_blank" class="footer-link">ASC Digital © 2026</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SISTEMA PRINCIPAL -->
+<div id="mainSystem" class="main-system" style="display: none;">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <img src="logo.png" alt="ASC Digital">
+                <span>ASC Digital <span style="color: var(--secondary); margin-left: 5px;">GESTÃO</span></span>
+            </div>
+            <button class="sidebar-toggle" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <span class="nav-section-title">Principal</span>
+                <a href="#" class="nav-item active" onclick="showSection('dashboard', event)">
+                    <i class="fas fa-tachometer-alt"></i><span>Painel de Controle</span>
+                </a>
+                <a href="#" class="nav-item" onclick="showSection('clientes', event)">
+                    <i class="fas fa-users"></i><span>Clientes</span>
+                </a>
+                <a href="#" class="nav-item" onclick="showSection('equipamentos', event)">
+                    <i class="fas fa-laptop"></i><span>Equipamentos</span>
+                </a>
+                <a href="#" class="nav-item" onclick="showSection('ordens', event)">
+                    <i class="fas fa-file-invoice"></i><span>Ordens de Serviço</span>
+                </a>
+            </div>
+            <div class="nav-section">
+                <span class="nav-section-title">Financeiro</span>
+                <a href="#" class="nav-item" onclick="showSection('faturamento', event)">
+                    <i class="fas fa-dollar-sign"></i><span>Faturamento</span>
+                </a>
+                <a href="#" class="nav-item" onclick="showSection('importar', event)">
+                    <i class="fas fa-file-import"></i><span>Importar Planilha</span>
+                </a>
+                <a href="#" class="nav-item" onclick="showSection('exportar', event)">
+                    <i class="fas fa-file-export"></i><span>Relatórios e Exportações</span>
+                </a>
+            </div>
+            <div class="nav-section" id="adminSection">
+                <span class="nav-section-title">Administração</span>
+                <a href="#" class="nav-item" onclick="showSection('usuarios', event)">
+                    <i class="fas fa-user-shield"></i><span>Usuários do Sistema</span>
+                </a>
+                <a href="#" class="nav-item" onclick="showSection('logs', event)">
+                    <i class="fas fa-clipboard-list"></i><span>Logs do Sistema</span>
+                </a>
+            </div>
+            <div class="nav-section">
+                <span class="nav-section-title">Segurança</span>
+                <a href="#" class="nav-item" onclick="showSection('backup', event)">
+                    <i class="fas fa-shield-alt"></i><span>Backup e Restauração</span>
+                </a>
+            </div>
+            <div class="nav-section">
+                <span class="nav-section-title">Configurações</span>
+                <a href="#" class="nav-item" onclick="showSection('dadosEmpresa', event)">
+                    <i class="fas fa-cog"></i><span>Dados da Empresa</span>
+                </a>
+            </div>
+        </nav>
+        <div class="sidebar-user">
+            <div class="user-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="user-info">
+                <span class="user-name" id="currentUserName">Administrador</span>
+                <span class="user-role" id="currentUserRole">Admin</span>
+            </div>
+            <button class="btn-icon user-settings" style="margin-left: auto;" onclick="openAlterarSenhaModal()" title="Alterar senha">
+                <i class="fas fa-key"></i>
+            </button>
+            <button class="btn-icon user-settings" style="background: #ffebee; color: #d32f2f;" onclick="logout()" title="Sair">
+                <i class="fas fa-sign-out-alt"></i>
+            </button>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="content-header">
+            <h2 id="pageTitle">Painel de Controle</h2>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <span class="header-date" id="currentDate"></span>
+            </div>
+        </header>
+
+        <!-- DASHBOARD -->
+        <section id="section-dashboard" class="content-section active">
+            <div class="dashboard-grid">
+                <div class="stat-card">
+                    <div class="stat-icon blue"><i class="fas fa-users"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="statClientes">0</span>
+                        <span class="stat-label">Clientes</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green"><i class="fas fa-laptop"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="statEquipamentos">0</span>
+                        <span class="stat-label">Equipamentos</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon orange"><i class="fas fa-file-invoice"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="statOrdens">0</span>
+                        <span class="stat-label">Ordens de Serviço</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon purple"><i class="fas fa-dollar-sign"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="statFaturamento">R$ 0,00</span>
+                        <span class="stat-label">Faturamento Mensal</span>
+                    </div>
+                </div>
+            </div>
+            <div class="recent-orders">
+                <h3><i class="fas fa-clock"></i> Ordens de Serviço Recentes</h3>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Nº OS</th><th>Cliente</th><th>Equipamento</th><th>Data</th><th>Valor Total</th><th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recentOrdersTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- CLIENTES -->
+        <section id="section-clientes" class="content-section">
+            <div class="section-header">
+                <h3>Cadastro de Clientes</h3>
+                <div class="section-actions">
+                    <button class="btn-icon search" onclick="toggleBusca('clientes')" title="Pesquisar">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <button class="btn-primary" onclick="openModal('clienteModal')">
+                        <i class="fas fa-plus"></i> Novo Cliente
+                    </button>
+                </div>
+            </div>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Nome / Razão Social</th><th>CPF / CNPJ</th><th>Telefone</th><th>Email</th><th>Tipo</th><th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="clientesTable"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- EQUIPAMENTOS -->
+        <section id="section-equipamentos" class="content-section">
+            <div class="section-header">
+                <h3>Cadastro de Equipamentos</h3>
+                <div class="section-actions">
+                    <button class="btn-icon search" onclick="toggleBusca('equipamentos')" title="Pesquisar">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <button class="btn-primary" onclick="openModal('equipamentoModal')">
+                        <i class="fas fa-plus"></i> Novo Equipamento
+                    </button>
+                </div>
+            </div>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Nº Série / Patrimônio</th><th>Tipo</th><th>Marca/Modelo</th><th>Ano</th><th>Cor</th><th>Cliente</th><th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="equipamentosTable"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ORDENS DE SERVIÇO -->
+        <section id="section-ordens" class="content-section">
+            <div class="section-header">
+                <h3>Ordens de Serviço</h3>
+                <div class="section-actions">
+                    <button class="btn-secondary" onclick="openConsultaOS()">
+                        <i class="fas fa-search"></i> Consultar OS
+                    </button>
+                    <button class="btn-primary" onclick="openModal('osModal')">
+                        <i class="fas fa-plus"></i> Nova OS
+                    </button>
+                </div>
+            </div>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Nº OS</th><th>Cliente</th><th>Equipamento</th><th>Data Entrada</th><th>Valor Total</th><th>Status</th><th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordensTable"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- FATURAMENTO -->
+        <section id="section-faturamento" class="content-section">
+            <div class="section-header">
+                <h3>Faturamento</h3>
+                <div class="filter-group">
+                    <select id="faturamentoPeriodo" onchange="updateFaturamento()">
+                        <option value="mensal">Mensal</option>
+                        <option value="anual">Anual</option>
+                    </select>
+                    <input type="month" id="faturamentoMes" onchange="updateFaturamento()">
+                    <input type="number" id="faturamentoAno" value="2026" min="2020" max="2030" onchange="updateFaturamento()">
+                </div>
+            </div>
+            <div class="faturamento-grid">
+                <div class="faturamento-card">
+                    <h4>Faturamento Total</h4>
+                    <div class="faturamento-valor" id="fatTotal">R$ 0,00</div>
+                </div>
+                <div class="faturamento-card">
+                    <h4>Valor dos Serviços</h4>
+                    <div class="faturamento-valor" id="fatMaoObra">R$ 0,00</div>
+                </div>
+                <div class="faturamento-card">
+                    <h4>Total de Horas</h4>
+                    <div class="faturamento-valor" id="fatPecas">R$ 0,00</div>
+                </div>
+                <div class="faturamento-card">
+                    <h4>Ordens Concluídas</h4>
+                    <div class="faturamento-valor" id="fatOrdens">0</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- RELATÓRIOS E EXPORTAÇÕES -->
+        <section id="section-exportar" class="content-section">
+            <div class="section-header">
+                <h3>Relatórios e Exportações</h3>
+            </div>
+            <p class="export-description">Gere arquivos com todas as ordens de serviço cadastradas e o faturamento das ordens concluídas.</p>
+            <div class="export-grid">
+                <div class="export-card">
+                    <div class="export-card-icon excel"><i class="fas fa-file-excel"></i></div>
+                    <h4>Ordens de Serviço</h4>
+                    <p>Lista completa de todas as OS registradas.</p>
+                    <div class="export-actions">
+                        <button class="btn-small" onclick="exportarOrdensExcel()"><i class="fas fa-file-excel"></i> Excel</button>
+                        <button class="btn-small" style="background: #dc3545;" onclick="exportarOrdensPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
+                    </div>
+                </div>
+                <div class="export-card">
+                    <div class="export-card-icon pdf"><i class="fas fa-file-invoice-dollar"></i></div>
+                    <h4>Faturamento</h4>
+                    <p>Resumo e detalhamento de todas as OS concluídas.</p>
+                    <div class="export-actions">
+                        <button class="btn-small" onclick="exportarFaturamentoExcel()"><i class="fas fa-file-excel"></i> Excel</button>
+                        <button class="btn-small" style="background: #dc3545;" onclick="exportarFaturamentoPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- IMPORTAR PLANILHA -->
+        <section id="section-importar" class="content-section">
+            <div class="section-header">
+                <h3>Importar Planilha Excel</h3>
+            </div>
+            <div class="import-container">
+                <div class="import-box">
+                    <div class="import-icon"><i class="fas fa-file-import"></i></div>
+                    <h4>Importar Serviços</h4>
+                    <p>Selecione um arquivo CSV exportado anteriormente ou no formato padrão.</p>
+                    <label for="importFile" class="btn-import">
+                        <i class="fas fa-upload"></i> Selecionar Arquivo
+                    </label>
+                    <input type="file" id="importFile" accept=".csv,.txt" onchange="importExcel(event)">
+                </div>
+                <div class="import-info">
+                    <h4><i class="fas fa-info-circle"></i> Formato esperado (CSV):</h4>
+                    <ul>
+                        <li><strong>Coluna A:</strong> Nome do Cliente</li>
+                        <li><strong>Coluna B:</strong> CPF/CNPJ do Cliente</li>
+                        <li><strong>Coluna C:</strong> Nº Série/Patrimônio do Equipamento</li>
+                        <li><strong>Coluna D:</strong> Tipo de Serviço</li>
+                        <li><strong>Coluna E:</strong> Total de Horas (valor em R$)</li>
+                        <li><strong>Coluna F:</strong> Valor dos Serviços (R$)</li>
+                        <li><strong>Coluna G:</strong> Data do Serviço (AAAA-MM-DD)</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- USUÁRIOS -->
+        <section id="section-usuarios" class="content-section">
+            <div class="section-header">
+                <h3>Usuários do Sistema</h3>
+                <div class="section-actions">
+                    <button class="btn-primary" onclick="openModal('usuarioModal')">
+                        <i class="fas fa-plus"></i> Novo Usuário
+                    </button>
+                </div>
+            </div>
+            <div style="background: #e3f2fd; border-left: 4px solid #1976d2; padding: 15px; border-radius: var(--radius); margin-bottom: 20px; display: flex; gap: 10px; align-items: flex-start;">
+                <i class="fas fa-info-circle" style="color: #1976d2; font-size: 1.2rem; margin-top: 2px;"></i>
+                <div style="font-size: 0.9rem; color: #1565c0;">
+                    <strong>⚠️ Importante:</strong> Ao criar um novo usuário, a conta será criada automaticamente no Firebase Authentication. 
+                    A senha é armazenada de forma segura e criptografada. Certifique-se de informar o usuário sobre a senha definida.
+                </div>
+            </div>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Nome</th><th>Usuário</th><th>Tipo</th><th>Status</th><th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usuariosTable"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- LOGS DO SISTEMA -->
+        <section id="section-logs" class="content-section">
+            <div class="section-header">
+                <h3>📋 Logs de Auditoria do Sistema</h3>
+                <div class="section-actions">
+                    <button class="btn-secondary" onclick="exportarLogsExcel()">
+                        <i class="fas fa-file-excel"></i> Exportar Excel
+                    </button>
+                    <button class="btn-icon delete" onclick="limparLogs()" title="Limpar todos os logs">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div style="background: #e3f2fd; border-left: 4px solid #1976d2; padding: 15px; border-radius: var(--radius); margin-bottom: 20px; display: flex; gap: 10px; align-items: flex-start;">
+                <i class="fas fa-info-circle" style="color: #1976d2; font-size: 1.2rem; margin-top: 2px;"></i>
+                <div style="font-size: 0.9rem; color: #1565c0;">
+                    <strong>Auditoria:</strong> Este histórico registra todas as ações realizadas pelos usuários. Apenas administradores têm acesso a esta tela. Total de registros: <strong id="totalLogs">0</strong>
+                </div>
+            </div>
+
+            <div class="logs-filters">
+                <div class="form-group">
+                    <label>Usuário</label>
+                    <select id="filtroLogUsuario" onchange="loadLogs()">
+                        <option value="">Todos os usuários</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Ação</label>
+                    <select id="filtroLogAcao" onchange="loadLogs()">
+                        <option value="">Todas as ações</option>
+                        <option value="LOGIN">Login</option>
+                        <option value="LOGOUT">Logout</option>
+                        <option value="CRIAR">Criar</option>
+                        <option value="EDITAR">Editar</option>
+                        <option value="EXCLUIR">Excluir</option>
+                        <option value="ALTERAR_SENHA">Alterar Senha</option>
+                        <option value="BACKUP">Backup</option>
+                        <option value="RESTAURAR">Restaurar</option>
+                        <option value="IMPORTAR">Importar</option>
+                        <option value="EXPORTAR">Exportar</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Entidade</label>
+                    <select id="filtroLogEntidade" onchange="loadLogs()">
+                        <option value="">Todas as entidades</option>
+                        <option value="CLIENTE">Cliente</option>
+                        <option value="EQUIPAMENTO">Equipamento</option>
+                        <option value="OS">Ordem de Serviço</option>
+                        <option value="USUARIO">Usuário</option>
+                        <option value="EMPRESA">Dados da Empresa</option>
+                        <option value="SISTEMA">Sistema</option>
+                        <option value="LOG">Log</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Data inicial</label>
+                    <input type="date" id="filtroLogDataInicio" onchange="loadLogs()">
+                </div>
+                <div class="form-group">
+                    <label>Data final</label>
+                    <input type="date" id="filtroLogDataFim" onchange="loadLogs()">
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 180px;">Data/Hora</th>
+                            <th>Usuário</th>
+                            <th style="width: 130px;">Ação</th>
+                            <th style="width: 130px;">Entidade</th>
+                            <th>Detalhes</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logsTable"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- DADOS DA EMPRESA -->
+        <section id="section-dadosEmpresa" class="content-section">
+            <div class="section-header">
+                <h3>Dados da Empresa</h3>
+            </div>
+            <div class="form-container">
+                <form id="dadosEmpresaForm" onsubmit="saveDadosEmpresa(event)">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Nome da Empresa</label>
+                            <input type="text" id="empresaNome" required>
+                        </div>
+                        <div class="form-group">
+                            <label>CNPJ</label>
+                            <input type="text" id="empresaCnpj">
+                        </div>
+                        <div class="form-group full-width">
+                            <label>Endereço</label>
+                            <input type="text" id="empresaEndereco">
+                        </div>
+                        <div class="form-group">
+                            <label>Telefone</label>
+                            <input type="text" id="empresaTelefone">
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="empresaEmail">
+                        </div>
+                    </div>
+                    <div style="margin-top: 20px; text-align: right;">
+                        <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Salvar Dados</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- BACKUP E RESTAURAÇÃO -->
+        <section id="section-backup" class="content-section">
+            <div class="section-header">
+                <h3>Backup e Restauração de Dados</h3>
+            </div>
+            <div class="backup-container">
+                <div class="backup-card">
+                    <div class="backup-icon"><i class="fas fa-download"></i></div>
+                    <h4>Fazer Backup</h4>
+                    <p>Baixe todos os dados do sistema (clientes, equipamentos, ordens de serviço, usuários) em um arquivo JSON seguro.</p>
+                    <button class="btn-primary" onclick="fazerBackup()">
+                        <i class="fas fa-shield-alt"></i> Criar Backup Agora
+                    </button>
+                    <div class="backup-info">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Guarde este arquivo em local seguro (Pen Drive, Google Drive, etc.)</span>
+                    </div>
+                </div>
+                <div class="backup-card">
+                    <div class="backup-icon"><i class="fas fa-upload"></i></div>
+                    <h4>Restaurar Backup</h4>
+                    <p>Restaure os dados a partir de um arquivo de backup (.json) anteriormente criado.</p>
+                    <label for="restoreFile" class="btn-primary" style="cursor: pointer; display: inline-flex;">
+                        <i class="fas fa-folder-open"></i> Selecionar Arquivo
+                    </label>
+                    <input type="file" id="restoreFile" accept=".json" onchange="restaurarBackup(event)" style="display: none;">
+                    <div class="backup-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span>Isso substituirá TODOS os dados atuais no banco de dados!</span>
+                    </div>
+                </div>
+            </div>
+            <div class="backup-tips">
+                <h4><i class="fas fa-lightbulb"></i> Dicas Importantes de Segurança:</h4>
+                <ul>
+                    <li>Faça backup semanalmente ou após cada dia de trabalho intenso.</li>
+                    <li>Guarde cópias em múltiplos locais (computador + Pen Drive + nuvem).</li>
+                    <li>Nomeie os arquivos com datas (ex: <code>backup-2026-01-15.json</code>) para facilitar a organização.</li>
+                    <li><strong>CRÍTICO:</strong> Este backup salva os dados da nuvem, garantindo que você tenha uma cópia de segurança externa.</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+</div>
+
+<!-- MODAIS -->
+
+<!-- MODAL CLIENTE -->
+<div id="clienteModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="clienteModalTitle">Novo Cliente</h3>
+            <button class="modal-close" onclick="closeModal('clienteModal')"><i class="fas fa-times"></i></button>
+        </div>
+        <form id="clienteForm" onsubmit="saveCliente(event)">
+            <input type="hidden" id="clienteId">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Tipo de Cliente *</label>
+                    <select id="clienteTipo" required onchange="toggleTipoCliente()">
+                        <option value="PF">Pessoa Física</option>
+                        <option value="PJ">Pessoa Jurídica</option>
+                    </select>
+                </div>
+                <div class="form-group" id="grupoNomeCliente">
+                    <label>Nome Completo *</label>
+                    <input type="text" id="clienteNome" required>
+                </div>
+                <div class="form-group" id="grupoCpfCliente">
+                <label>CPF</label>
+                <input type="text" id="clienteCpf" placeholder="Somente números" maxlength="14" inputmode="numeric">
+                </div>
+                <div class="form-group" id="grupoRazaoSocial" style="display: none;">
+                    <label>Razão Social *</label>
+                    <input type="text" id="clienteRazaoSocial">
+                </div>
+                <div class="form-group" id="grupoNomeFantasia" style="display: none;">
+                    <label>Nome Fantasia</label>
+                    <input type="text" id="clienteNomeFantasia">
+                </div>
+                <div class="form-group" id="grupoCnpjCliente" style="display: none;">
+                <label>CNPJ</label>
+                <input type="text" id="clienteCnpj" placeholder="Somente números" maxlength="18" inputmode="numeric">
+                </div>
+                <div class="form-group" id="grupoIE" style="display: none;">
+                    <label>Inscrição Estadual</label>
+                    <input type="text" id="clienteIE">
+                </div>
+                <div class="form-group">
+                    <label>Telefone *</label>
+                    <input type="text" id="clienteTelefone" required>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="clienteEmail">
+                </div>
+                <div class="form-group full-width">
+                    <label>Endereço</label>
+                    <input type="text" id="clienteEndereco">
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-secondary" onclick="closeModal('clienteModal')">Cancelar</button>
+                <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Salvar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL EQUIPAMENTO -->
+<div id="equipamentoModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="equipamentoModalTitle">Novo Equipamento</h3>
+            <button class="modal-close" onclick="closeModal('equipamentoModal')"><i class="fas fa-times"></i></button>
+        </div>
+        <form id="equipamentoForm" onsubmit="saveEquipamento(event)">
+            <input type="hidden" id="equipamentoId">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Nº Série / Patrimônio *</label>
+                    <input type="text" id="equipamentoNumeroSerie" required>
+                </div>
+                <div class="form-group">
+                    <label>Tipo de Equipamento *</label>
+                    <select id="equipamentoTipo" required>
+                        <option value="Notebook">Notebook</option>
+                        <option value="Desktop">Desktop</option>
+                        <option value="Servidor">Servidor</option>
+                        <option value="Monitor">Monitor</option>
+                        <option value="Impressora">Impressora</option>
+                        <option value="Celular">Celular</option>
+                        <option value="Tablet">Tablet</option>
+                        <option value="Rede">Equipamento de Rede</option>
+                        <option value="Outro">Outro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Marca *</label>
+                    <input type="text" id="equipamentoMarca" required>
+                </div>
+                <div class="form-group">
+                    <label>Modelo *</label>
+                    <input type="text" id="equipamentoModelo" required>
+                </div>
+                <div class="form-group">
+                    <label>Ano</label>
+                    <input type="text" id="equipamentoAno">
+                </div>
+                <div class="form-group">
+                    <label>Cor</label>
+                    <input type="text" id="equipamentoCor">
+                </div>
+                <div class="form-group full-width">
+                    <label>Cliente *</label>
+                    <select id="equipamentoCliente" required></select>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-secondary" onclick="closeModal('equipamentoModal')">Cancelar</button>
+                <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Salvar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL ORDEM DE SERVIÇO -->
+<div id="osModal" class="modal modal-large">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="osModalTitle">Nova Ordem de Serviço</h3>
+            <button class="modal-close" onclick="closeModal('osModal')"><i class="fas fa-times"></i></button>
+        </div>
+        <form id="osForm" onsubmit="saveOS(event)">
+            <input type="hidden" id="osId">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Nº OS</label>
+                    <input type="text" id="osNumero" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Data Entrada *</label>
+                    <input type="date" id="osDataEntrada" required>
+                </div>
+                <div class="form-group">
+                    <label>Data Previsão</label>
+                    <input type="date" id="osDataPrevisao">
+                </div>
+                <div class="form-group">
+                    <label>Status *</label>
+                    <select id="osStatus" required>
+                        <option value="aberta">Aberta</option>
+                        <option value="andamento">Em Andamento</option>
+                        <option value="concluida">Concluída</option>
+                        <option value="cancelada">Cancelada</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Cliente *</label>
+                    <select id="osCliente" required onchange="loadEquipamentosByCliente()"></select>
+                </div>
+                <div class="form-group">
+                    <label>Equipamento *</label>
+                    <select id="osEquipamento" required></select>
+                </div>
+                <div class="form-group full-width">
+                    <label>Descrição do Problema / Serviço Solicitado</label>
+                    <textarea id="osDescricao" rows="3"></textarea>
+                </div>
+            </div>
+            <div class="servicos-section">
+                <h4>
+                    Serviços e Componentes
+                    <button type="button" class="btn-small" onclick="addServicoRow()"><i class="fas fa-plus"></i> Adicionar Item</button>
+                </h4>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Tipo de Serviço</th><th>Descrição</th><th>Qtd Horas</th>
+                                <th>Valor Hora</th><th>Total de Horas</th>
+                                <th>Valor dos Serviços</th><th>Subtotal</th><th>Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="servicosBody"></tbody>
+                    </table>
+                </div>
+                <div class="os-total">
+                    <div class="total-row"><span>Total de Horas:</span><span id="osTotalPecas">R$ 0,00</span></div>
+                    <div class="total-row"><span>Valor dos Serviços:</span><span id="osTotalMaoObra">R$ 0,00</span></div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-secondary" onclick="closeModal('osModal')">Cancelar</button>
+                <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Salvar OS</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL ALTERAR SENHA -->
+<div id="alterarSenhaModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Alterar minha senha</h3>
+            <button class="modal-close" onclick="closeModal('alterarSenhaModal')"><i class="fas fa-times"></i></button>
+        </div>
+        <form id="alterarSenhaForm" onsubmit="alterarSenha(event)">
+            <div class="form-group">
+                <label>Senha atual *</label>
+                <input type="password" id="senhaAtual" required>
+            </div>
+            <div class="form-group">
+                <label>Nova senha *</label>
+                <input type="password" id="novaSenha" required minlength="6">
+            </div>
+            <div class="form-group">
+                <label>Confirmar nova senha *</label>
+                <input type="password" id="confirmarSenha" required minlength="6">
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-secondary" onclick="closeModal('alterarSenhaModal')">Cancelar</button>
+                <button type="submit" class="btn-primary"><i class="fas fa-key"></i> Alterar senha</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL USUÁRIO -->
+<div id="usuarioModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="usuarioModalTitle">Novo Usuário</h3>
+            <button class="modal-close" onclick="closeModal('usuarioModal')"><i class="fas fa-times"></i></button>
+        </div>
+        <form id="usuarioForm" onsubmit="saveUsuario(event)">
+            <input type="hidden" id="usuarioId">
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label>Nome Completo *</label>
+                    <input type="text" id="usuarioNome" required>
+                </div>
+                <div class="form-group full-width">
+                    <label>Usuário (email) *</label>
+                    <input type="email" id="usuarioLogin" required placeholder="exemplo@email.com">
+                    <small style="color: var(--gray); font-size: 0.8rem; margin-top: 4px; display: block;">
+                        ⚠️ O login deve ser um email válido (será usado no Firebase Authentication)
+                    </small>
+                </div>
+                <div class="form-group full-width">
+                    <label>Senha *</label>
+                    <input type="password" id="usuarioSenha" required minlength="6" placeholder="Mínimo 6 caracteres">
+                    <small style="color: var(--gray); font-size: 0.8rem; margin-top: 4px; display: block;">
+                        🔒 A senha será armazenada de forma segura e criptografada no Firebase
+                    </small>
+                </div>
+                <div class="form-group">
+                    <label>Tipo de Usuário *</label>
+                    <select id="usuarioTipo" required>
+                        <option value="admin">Administrador</option>
+                        <option value="usuario">Usuário</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="usuarioStatus">
+                        <option value="ativo">Ativo</option>
+                        <option value="inativo">Inativo</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-secondary" onclick="closeModal('usuarioModal')">Cancelar</button>
+                <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Salvar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL CONSULTA OS -->
+<div id="consultaOSModal" class="modal modal-large">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Consultar Ordens de Serviço</h3>
+            <button class="modal-close" onclick="closeModal('consultaOSModal')"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="consulta-os-content">
+            <div class="consulta-os-filters">
+                <div class="form-group">
+                    <label>Nº Série / Patrimônio</label>
+                    <input type="text" id="consultaNumeroSerie" oninput="consultarOS()">
+                </div>
+                <div class="form-group">
+                    <label>Nome do cliente</label>
+                    <input type="text" id="consultaCliente" oninput="consultarOS()">
+                </div>
+                <button type="button" class="btn-secondary consulta-clear" onclick="limparConsultaOS()">
+                    <i class="fas fa-eraser"></i> Limpar
+                </button>
+            </div>
+            <div class="consulta-os-resumo" id="consultaOSResumo">0 ordens de serviço encontradas.</div>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Nº OS</th><th>Cliente</th><th>Nº Série</th><th>Status</th><th>Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="consultaOSTable"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL VISUALIZAR OS -->
+<div id="osViewModal" class="modal modal-large">
+    <div class="modal-content">
+        <div class="modal-header no-print">
+            <h3>Ordem de Serviço</h3>
+            <div class="modal-actions-header">
+                <button class="btn-primary" onclick="printOS()"><i class="fas fa-print"></i> Imprimir</button>
+                <button class="modal-close" onclick="closeModal('osViewModal')"><i class="fas fa-times"></i></button>
+            </div>
+        </div>
+        <div id="osPrintContent" class="os-print-content"></div>
+    </div>
+</div>
+
+<script type="module" src="script.js"></script>
+</body>
+</html>
