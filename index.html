@@ -85,7 +85,10 @@
         <nav class="sidebar-nav">
             <div class="nav-section">
                 <span class="nav-section-title">Principal</span>
-                <a href="#" class="nav-item active" onclick="showSection('dashboard', event)">
+                <a href="#" class="nav-item active" onclick="showSection('calendario', event)">
+                    <i class="fas fa-calendar-alt"></i><span>Calendário</span>
+                </a>
+                <a href="#" class="nav-item" onclick="showSection('dashboard', event)">
                     <i class="fas fa-tachometer-alt"></i><span>Painel de Controle</span>
                 </a>
                 <a href="#" class="nav-item" onclick="showSection('clientes', event)">
@@ -151,14 +154,42 @@
 
     <main class="main-content">
         <header class="content-header">
-            <h2 id="pageTitle">Painel de Controle</h2>
+            <h2 id="pageTitle">Calendário</h2>
             <div style="display: flex; align-items: center; gap: 15px;">
                 <span class="header-date" id="currentDate"></span>
             </div>
         </header>
 
+        <!-- CALENDÁRIO -->
+        <section id="section-calendario" class="content-section active">
+            <div class="calendar-card">
+                <div class="calendar-head">
+                    <h3>Calendário de Ordens de Serviço</h3>
+                    <p class="calendar-subtitle">entradas e prazos de entrega das OS</p>
+                </div>
+                <div class="calendar-toolbar">
+                    <div class="calendar-views">
+                        <button class="cal-view-btn" id="btnViewDia" onclick="setCalendarView('dia')">Dia</button>
+                        <button class="cal-view-btn" id="btnViewSemana" onclick="setCalendarView('semana')">Semana</button>
+                        <button class="cal-view-btn active" id="btnViewMes" onclick="setCalendarView('mes')">Mês</button>
+                    </div>
+                    <div class="calendar-title" id="calendarTitle"></div>
+                    <div class="calendar-nav">
+                        <button class="cal-today-btn" onclick="calendarHoje()">Hoje</button>
+                        <button class="cal-arrow" onclick="calendarPrev()"><i class="fas fa-chevron-left"></i></button>
+                        <button class="cal-arrow" onclick="calendarNext()"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                </div>
+                <div id="calendarBody"></div>
+                <div class="calendar-legend">
+                    <span class="cal-legend-item"><span class="cal-dot entrada"></span> Entrada da OS</span>
+                    <span class="cal-legend-item"><span class="cal-dot previsao"></span> Previsão de entrega</span>
+                </div>
+            </div>
+        </section>
+
         <!-- DASHBOARD -->
-        <section id="section-dashboard" class="content-section active">
+        <section id="section-dashboard" class="content-section">
             <div class="dashboard-grid">
                 <div class="stat-card">
                     <div class="stat-icon blue"><i class="fas fa-users"></i></div>
@@ -246,7 +277,7 @@
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th>Nº Série / Patrimônio</th><th>Tipo</th><th>Marca/Modelo</th><th>Ano</th><th>Cor</th><th>Cliente</th><th>Ações</th>
+                            <th>Nº Série / Patrimônio</th><th>Tipo</th><th>Descrição / Observações</th><th>Cliente</th><th>Ações</th>
                         </tr>
                     </thead>
                     <tbody id="equipamentosTable"></tbody>
@@ -496,7 +527,7 @@
                         </div>
                         <div class="form-group">
                             <label>CNPJ</label>
-                            <input type="text" id="empresaCnpj">
+                            <input type="text" id="empresaCnpj" placeholder="Somente números" maxlength="18" inputmode="numeric">
                         </div>
                         <div class="form-group full-width">
                             <label>Endereço</label>
@@ -563,8 +594,6 @@
     </main>
 </div>
 
-<!-- MODAIS -->
-
 <!-- MODAL CLIENTE -->
 <div id="clienteModal" class="modal">
     <div class="modal-content">
@@ -587,8 +616,8 @@
                     <input type="text" id="clienteNome" required>
                 </div>
                 <div class="form-group" id="grupoCpfCliente">
-                <label>CPF</label>
-                <input type="text" id="clienteCpf" placeholder="Somente números" maxlength="14" inputmode="numeric">
+                    <label>CPF</label>
+                    <input type="text" id="clienteCpf" placeholder="Somente números" maxlength="14" inputmode="numeric">
                 </div>
                 <div class="form-group" id="grupoRazaoSocial" style="display: none;">
                     <label>Razão Social *</label>
@@ -599,8 +628,8 @@
                     <input type="text" id="clienteNomeFantasia">
                 </div>
                 <div class="form-group" id="grupoCnpjCliente" style="display: none;">
-                <label>CNPJ</label>
-                <input type="text" id="clienteCnpj" placeholder="Somente números" maxlength="18" inputmode="numeric">
+                    <label>CNPJ</label>
+                    <input type="text" id="clienteCnpj" placeholder="Somente números" maxlength="18" inputmode="numeric">
                 </div>
                 <div class="form-group" id="grupoIE" style="display: none;">
                     <label>Inscrição Estadual</label>
@@ -655,21 +684,9 @@
                         <option value="Outro">Outro</option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label>Marca *</label>
-                    <input type="text" id="equipamentoMarca" required>
-                </div>
-                <div class="form-group">
-                    <label>Modelo *</label>
-                    <input type="text" id="equipamentoModelo" required>
-                </div>
-                <div class="form-group">
-                    <label>Ano</label>
-                    <input type="text" id="equipamentoAno">
-                </div>
-                <div class="form-group">
-                    <label>Cor</label>
-                    <input type="text" id="equipamentoCor">
+                <div class="form-group full-width">
+                    <label>Descrição / Observações</label>
+                    <textarea id="equipamentoDescricao" rows="3" placeholder="Ex.: Notebook Dell preto, acompanha carregador, adesivo na tampa..."></textarea>
                 </div>
                 <div class="form-group full-width">
                     <label>Cliente *</label>
@@ -748,6 +765,7 @@
                 <div class="os-total">
                     <div class="total-row"><span>Total de Horas:</span><span id="osTotalPecas">R$ 0,00</span></div>
                     <div class="total-row"><span>Valor dos Serviços:</span><span id="osTotalMaoObra">R$ 0,00</span></div>
+                    <div class="total-row total-final"><span>VALOR TOTAL:</span><span id="osTotalGeral">R$ 0,00</span></div>
                 </div>
             </div>
             <div class="modal-actions">
