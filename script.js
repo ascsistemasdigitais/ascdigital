@@ -11,7 +11,7 @@ import {
   reauthenticateWithCredential
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-// ⚠️ SUBSTITUA PELAS SUAS CREDENCIAIS REAIS DO FIREBASE CONSOLE
+// ✅ CREDENCIAIS DO SEU PROJETO ASC DIGITAL
 const firebaseConfig = {
   apiKey: "AIzaSyAbgF4rh9O4XMLJew2aWDzJoFR_oD-JtVY",
   authDomain: "ascdigital.firebaseapp.com",
@@ -39,6 +39,8 @@ let appData = {
 let currentUser = null;
 let editingOS = null;
 let appLogs = [];
+let calendarDate = new Date();
+let calendarView = 'mes';
 
 // ==========================================
 // 3. FUNÇÕES AUXILIARES DE BANCO DE DADOS
@@ -169,6 +171,10 @@ function setupLogin() {
           document.getElementById('adminSection').style.display = 'none'; 
         }
         updateDashboard();
+        // ✅ SEMPRE ENTRA NO CALENDÁRIO (tela inicial)
+        calendarDate = new Date();
+        calendarView = 'mes';
+        showSection('calendario');
       } else {
         alert("Usuário não encontrado ou inativo.");
         await signOut(auth);
@@ -269,10 +275,13 @@ function showSection(section, event) {
   if (event && event.target) {
     const navItem = event.target.closest('.nav-item');
     if (navItem) navItem.classList.add('active');
+  } else {
+    const navItem = document.querySelector(`.nav-item[onclick*="showSection('${section}'"]`);
+    if (navItem) navItem.classList.add('active');
   }
 
   const titles = {
-    'dashboard': 'Painel de Controle', 'clientes': 'Clientes', 'equipamentos': 'Equipamentos',
+    'calendario': 'Calendário', 'dashboard': 'Painel de Controle', 'clientes': 'Clientes', 'equipamentos': 'Equipamentos',
     'ordens': 'Ordens de Serviço', 'faturamento': 'Faturamento', 'importar': 'Importar Planilha',
     'exportar': 'Relatórios e Exportações', 'backup': 'Backup e Restauração',
     'usuarios': 'Usuários do Sistema', 'dadosEmpresa': 'Dados da Empresa',
@@ -280,6 +289,7 @@ function showSection(section, event) {
   };
   document.getElementById('pageTitle').textContent = titles[section] || 'Painel de Controle';
 
+  if (section === 'calendario') renderCalendar();
   if (section === 'clientes') loadClientes();
   if (section === 'equipamentos') loadEquipamentos();
   if (section === 'ordens') loadOrdens();
@@ -333,7 +343,7 @@ function toggleBusca(tipo) {
     painel.className = 'search-panel';
     painel.innerHTML = `<i class="fas fa-search"></i><input type="search" id="${campoId}">`;
     const campoCriado = painel.querySelector('input');
-    campoCriado.placeholder = tipo === 'clientes' ? 'Pesquisar por nome, CPF/CNPJ, telefone ou e-mail' : 'Pesquisar por nº série, tipo, marca ou cliente';
+    campoCriado.placeholder = tipo === 'clientes' ? 'Pesquisar por nome, CPF/CNPJ, telefone ou e-mail' : 'Pesquisar por nº série, tipo, descrição ou cliente';
     campoCriado.addEventListener('input', tipo === 'clientes' ? loadClientes : loadEquipamentos);
     section.querySelector('.table-container').before(painel);
   }
@@ -355,13 +365,45 @@ function toggleTipoCliente() {
   document.getElementById('grupoCnpjCliente').style.display = isPF ? 'none' : 'block';
   document.getElementById('grupoIE').style.display = isPF ? 'none' : 'block';
   
-    // Apenas Nome (PF) e Razão Social (PJ) continuam obrigatórios
+  // CPF e CNPJ são opcionais - apenas Nome (PF) e Razão Social (PJ) são obrigatórios
   document.getElementById('clienteNome').required = isPF;
   document.getElementById('clienteRazaoSocial').required = !isPF;
 }
 
 // ==========================================
-// 7. CRUD CLIENTES
+// 7. MÁSCARAS DE CPF / CNPJ
+// ==========================================
+function maskCPF(value) {
+  return value
+    .replace(/\D/g, '')
+    .slice(0, 11)
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+}
+
+function maskCNPJ(value) {
+  return value
+    .replace(/\D/g, '')
+    .slice(0, 14)
+    .replace(/(\d{2})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d)/, '$1/$2')
+    .replace(/(\d{4})(\d{1,2})$/, '$1-$2');
+}
+
+function setupMasks() {
+  const cpf = document.getElementById('clienteCpf');
+  const cnpj = document.getElementById('clienteCnpj');
+  const empresaCnpj = document.getElementById('empresaCnpj');
+
+  if (cpf) cpf.addEventListener('input', () => { cpf.value = maskCPF(cpf.value); });
+  if (cnpj) cnpj.addEventListener('input', () => { cnpj.value = maskCNPJ(cnpj.value); });
+  if (empresaCnpj) empresaCnpj.addEventListener('input', () => { empresaCnpj.value = maskCNPJ(empresaCnpj.value); });
+}
+
+// ==========================================
+// 8. CRUD CLIENTES
 // ==========================================
 function loadClientes() {
   const tbody = document.getElementById('clientesTable');
@@ -380,7 +422,7 @@ function loadClientes() {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>${escapeHTML(nomeExibicao)}</td>
-      <td>${escapeHTML(documento)}</td>
+      <td>${escapeHTML(documento || '-')}</td>
       <td>${escapeHTML(c.telefone)}</td>
       <td>${escapeHTML(c.email || '-')}</td>
       <td><span class="status-badge status-${c.tipo === 'PJ' ? 'andamento' : 'concluida'}">${tipoLabel}</span></td>
@@ -419,7 +461,7 @@ async function saveCliente(e) {
     const nomeCliente = tipo === 'PJ' ? data.razaoSocial : data.nome;
     const documento = tipo === 'PJ' ? data.cnpj : data.cpf;
     await registrarLog(id ? 'EDITAR' : 'CRIAR', 'CLIENTE', 
-      `${id ? 'Cliente editado' : 'Novo cliente'}: ${nomeCliente} (${documento})`);
+      `${id ? 'Cliente editado' : 'Novo cliente'}: ${nomeCliente} (${documento || 'sem documento'})`);
     closeModal('clienteModal'); loadClientes(); updateDashboard();
   } catch (error) {
     console.error("Erro ao salvar cliente:", error);
@@ -463,7 +505,7 @@ async function deleteCliente(id) {
 }
 
 // ==========================================
-// 8. CRUD EQUIPAMENTOS
+// 9. CRUD EQUIPAMENTOS (SIMPLIFICADO)
 // ==========================================
 function loadEquipamentos() {
   const tbody = document.getElementById('equipamentosTable');
@@ -473,7 +515,7 @@ function loadEquipamentos() {
   appData.equipamentos.filter(e => {
     const cliente = appData.clientes.find(c => c.id === e.clienteId);
     const nomeCliente = cliente ? (cliente.tipo === 'PJ' ? cliente.razaoSocial : cliente.nome) : '';
-    return !termo || normalizarConsulta(`${e.numeroSerie} ${e.tipo} ${e.marca} ${e.modelo} ${e.ano || ''} ${e.cor || ''} ${nomeCliente}`).includes(termo);
+    return !termo || normalizarConsulta(`${e.numeroSerie} ${e.tipo} ${e.descricao || ''} ${nomeCliente}`).includes(termo);
   }).forEach(e => {
     const cliente = appData.clientes.find(c => c.id === e.clienteId);
     const nomeCliente = cliente ? (cliente.tipo === 'PJ' ? cliente.razaoSocial : cliente.nome) : '-';
@@ -481,9 +523,7 @@ function loadEquipamentos() {
     tr.innerHTML = `
       <td>${escapeHTML(e.numeroSerie)}</td>
       <td>${escapeHTML(e.tipo)}</td>
-      <td>${escapeHTML(e.marca)} ${escapeHTML(e.modelo)}</td>
-      <td>${escapeHTML(e.ano || '-')}</td>
-      <td>${escapeHTML(e.cor || '-')}</td>
+      <td>${escapeHTML(e.descricao || '-')}</td>
       <td>${nomeCliente}</td>
       <td>
         <button class="btn-icon edit" onclick="editEquipamento('${escapeHTML(e.id)}')"><i class="fas fa-edit"></i></button>
@@ -499,10 +539,7 @@ async function saveEquipamento(e) {
   const data = {
     numeroSerie: document.getElementById('equipamentoNumeroSerie').value,
     tipo: document.getElementById('equipamentoTipo').value,
-    marca: document.getElementById('equipamentoMarca').value,
-    modelo: document.getElementById('equipamentoModelo').value,
-    ano: document.getElementById('equipamentoAno').value,
-    cor: document.getElementById('equipamentoCor').value,
+    descricao: document.getElementById('equipamentoDescricao').value,
     clienteId: document.getElementById('equipamentoCliente').value
   };
   try {
@@ -514,7 +551,7 @@ async function saveEquipamento(e) {
       appData.equipamentos.push({ id: newId, ...data });
     }
     await registrarLog(id ? 'EDITAR' : 'CRIAR', 'EQUIPAMENTO', 
-      `${id ? 'Equipamento editado' : 'Novo equipamento'}: ${data.numeroSerie} - ${data.marca} ${data.modelo}`);
+      `${id ? 'Equipamento editado' : 'Novo equipamento'}: ${data.numeroSerie} - ${data.tipo}`);
     closeModal('equipamentoModal'); loadEquipamentos(); updateDashboard();
   } catch (error) {
     console.error("Erro ao salvar equipamento:", error);
@@ -527,10 +564,7 @@ function editEquipamento(id) {
   document.getElementById('equipamentoId').value = e.id;
   document.getElementById('equipamentoNumeroSerie').value = e.numeroSerie;
   document.getElementById('equipamentoTipo').value = e.tipo;
-  document.getElementById('equipamentoMarca').value = e.marca;
-  document.getElementById('equipamentoModelo').value = e.modelo;
-  document.getElementById('equipamentoAno').value = e.ano || '';
-  document.getElementById('equipamentoCor').value = e.cor || '';
+  document.getElementById('equipamentoDescricao').value = e.descricao || '';
   loadClientesSelect('equipamentoCliente');
   document.getElementById('equipamentoCliente').value = e.clienteId;
   document.getElementById('equipamentoModalTitle').textContent = 'Editar Equipamento';
@@ -567,13 +601,13 @@ function loadEquipamentosByCliente() {
   select.innerHTML = '<option value="">Selecione o equipamento</option>';
   if (clienteId) {
     appData.equipamentos.filter(e => e.clienteId === clienteId).forEach(e => {
-      select.innerHTML += `<option value="${escapeHTML(e.id)}">${escapeHTML(e.numeroSerie)} - ${escapeHTML(e.marca)} ${escapeHTML(e.modelo)}</option>`;
+      select.innerHTML += `<option value="${escapeHTML(e.id)}">${escapeHTML(e.numeroSerie)} - ${escapeHTML(e.tipo)}</option>`;
     });
   }
 }
 
 // ==========================================
-// 9. ORDENS DE SERVIÇO
+// 10. ORDENS DE SERVIÇO
 // ==========================================
 function openConsultaOS() {
   document.getElementById('consultaNumeroSerie').value = '';
@@ -644,7 +678,7 @@ function loadOrdens() {
     tr.innerHTML = `
       <td>${escapeHTML(o.numero)}</td>
       <td>${nomeCliente}</td>
-      <td>${equipamento ? `${escapeHTML(equipamento.numeroSerie)} - ${escapeHTML(equipamento.marca)}` : '-'}</td>
+      <td>${equipamento ? `${escapeHTML(equipamento.numeroSerie)} - ${escapeHTML(equipamento.tipo)}` : '-'}</td>
       <td>${formatDate(o.dataEntrada)}</td>
       <td>${formatCurrency(o.valorTotal)}</td>
       <td><span class="status-badge status-${escapeHTML(o.status)}">${getStatusLabel(o.status)}</span></td>
@@ -770,16 +804,18 @@ function viewOS(id) {
 
   document.getElementById('osPrintContent').innerHTML = `
     <div class="os-print-header">
+      <img src="logo.png" alt="ASC Digital" class="os-print-logo">
       <h2>${escapeHTML(appData.dadosEmpresa.nome)}</h2>
+      ${appData.dadosEmpresa.cnpj ? `<p>CNPJ: ${escapeHTML(appData.dadosEmpresa.cnpj)}</p>` : ''}
       <p>${escapeHTML(appData.dadosEmpresa.endereco)}</p>
       <p>Tel: ${escapeHTML(appData.dadosEmpresa.telefone)} | Email: ${escapeHTML(appData.dadosEmpresa.email)}</p>
       <h3 style="margin-top: 15px;">ORDEM DE SERVIÇO Nº ${escapeHTML(o.numero)}</h3>
     </div>
     <div class="os-print-info">
       <div><label>Cliente</label><span>${escapeHTML(nomeCliente)}</span></div>
-      <div><label>${labelDocCliente}</label><span>${escapeHTML(documentoCliente)}</span></div>
-      <div><label>Equipamento</label><span>${equipamento ? `${escapeHTML(equipamento.numeroSerie)} - ${escapeHTML(equipamento.marca)} ${escapeHTML(equipamento.modelo)}` : '-'}</span></div>
-      <div><label>Tipo / Ano / Cor</label><span>${equipamento ? `${escapeHTML(equipamento.tipo)} / ${escapeHTML(equipamento.ano || '-')} / ${escapeHTML(equipamento.cor || '-')}` : '-'}</span></div>
+      <div><label>${labelDocCliente}</label><span>${escapeHTML(documentoCliente || '-')}</span></div>
+      <div><label>Equipamento</label><span>${equipamento ? `${escapeHTML(equipamento.numeroSerie)} - ${escapeHTML(equipamento.tipo)}` : '-'}</span></div>
+      <div><label>Descrição / Observações</label><span>${equipamento ? escapeHTML(equipamento.descricao || '-') : '-'}</span></div>
       <div><label>Data Entrada</label><span>${formatDate(o.dataEntrada)}</span></div>
       <div><label>Previsão</label><span>${o.dataPrevisao ? formatDate(o.dataPrevisao) : '-'}</span></div>
       <div><label>Status</label><span>${getStatusLabel(o.status)}</span></div>
@@ -842,7 +878,7 @@ function updateOSTotals() {
 }
 
 // ==========================================
-// 10. USUÁRIOS
+// 11. USUÁRIOS
 // ==========================================
 function loadUsuarios() {
   const tbody = document.getElementById('usuariosTable');
@@ -974,7 +1010,7 @@ async function saveDadosEmpresa(e) {
 }
 
 // ==========================================
-// LOGS
+// 12. LOGS
 // ==========================================
 async function loadLogs() {
   try {
@@ -1105,7 +1141,7 @@ function exportarLogsExcel() {
 }
 
 // ==========================================
-// 11. FATURAMENTO E EXPORTAÇÃO
+// 13. FATURAMENTO E EXPORTAÇÃO
 // ==========================================
 function updateFaturamento() {
   const periodo = document.getElementById('faturamentoPeriodo').value;
@@ -1134,7 +1170,7 @@ function dadosOrdensExportacao() {
     const nomeCliente = c ? (c.tipo === 'PJ' ? c.razaoSocial : c.nome) : '-';
     const documentoCliente = c ? (c.tipo === 'PJ' ? c.cnpj : c.cpf) : '-';
     const numSerie = e ? e.numeroSerie : '-';
-    const equipamentoDesc = e ? `${e.marca} ${e.modelo}` : '-';
+    const equipamentoDesc = e ? e.tipo : '-';
     return [o.numero, nomeCliente, documentoCliente, numSerie, equipamentoDesc, formatDate(o.dataEntrada), getStatusLabel(o.status), o.totalPecas || 0, o.totalMaoObra || 0, o.valorTotal || 0];
   });
 }
@@ -1179,19 +1215,19 @@ function abrirRelatorioPDF(titulo, cabecalhos, linhas, resumo = '') {
 }
 
 async function exportarOrdensPDF() {
-  abrirRelatorioPDF('Relatório de OS', ['Nº OS', 'Cliente', 'Nº Série', 'Data', 'Status', 'Peças', 'Mão de Obra', 'Total'], dadosOrdensExportacao().map(l => [l[0], l[1], l[3], l[5], l[6], l[7], l[8], l[9]]));
+  abrirRelatorioPDF('Relatório de OS', ['Nº OS', 'Cliente', 'Nº Série', 'Data', 'Status', 'Total de Horas', 'Valor dos Serviços', 'Total'], dadosOrdensExportacao().map(l => [l[0], l[1], l[3], l[5], l[6], l[7], l[8], l[9]]));
   await registrarLog('EXPORTAR', 'SISTEMA', `Relatório de OS exportado em PDF`);
 }
 
 async function exportarFaturamentoPDF() {
   const linhas = dadosFaturamentoExportacao();
-  const resumo = `<p><strong>OS concluídas:</strong> ${linhas.length} | <strong>Peças:</strong> ${formatCurrency(linhas.reduce((t, l) => t + l[4], 0))} | <strong>Mão de obra:</strong> ${formatCurrency(linhas.reduce((t, l) => t + l[5], 0))} | <strong>Total:</strong> ${formatCurrency(linhas.reduce((t, l) => t + l[6], 0))}</p>`;
+  const resumo = `<p><strong>OS concluídas:</strong> ${linhas.length} | <strong>Total de Horas:</strong> ${formatCurrency(linhas.reduce((t, l) => t + l[4], 0))} | <strong>Valor dos Serviços:</strong> ${formatCurrency(linhas.reduce((t, l) => t + l[5], 0))} | <strong>Total:</strong> ${formatCurrency(linhas.reduce((t, l) => t + l[6], 0))}</p>`;
   abrirRelatorioPDF('Relatório de Faturamento', ['Nº OS', 'Data', 'Cliente', 'Nº Série', 'Total de Horas', 'Valor dos Serviços', 'Total'], linhas, resumo);
   await registrarLog('EXPORTAR', 'SISTEMA', `Relatório de Faturamento exportado em PDF`);
 }
 
 // ==========================================
-// 12. IMPORTAR E DASHBOARD
+// 14. IMPORTAR E DASHBOARD
 // ==========================================
 async function importExcel(event) {
   const file = event.target.files[0];
@@ -1207,9 +1243,9 @@ async function importExcel(event) {
         const tipoServico = cols[3].trim(), valorPecas = parseFloat(cols[4]) || 0, valorMaoObra = parseFloat(cols[5]) || 0, dataServico = cols[6].trim();
 
         const isCNPJ = documentoCliente.replace(/\D/g, '').length > 11;
-        
         const docDigits = documentoCliente.replace(/\D/g, '');
-let cliente = appData.clientes.find(c => (c.cpf || '').replace(/\D/g, '') === docDigits || (c.cnpj || '').replace(/\D/g, '') === docDigits);
+        
+        let cliente = appData.clientes.find(c => (c.cpf || '').replace(/\D/g, '') === docDigits || (c.cnpj || '').replace(/\D/g, '') === docDigits);
         if (!cliente) { 
           const dadosCliente = isCNPJ 
             ? { tipo: 'PJ', razaoSocial: nomeCliente, nomeFantasia: nomeCliente, cnpj: documentoCliente, telefone: '', email: '' }
@@ -1220,8 +1256,8 @@ let cliente = appData.clientes.find(c => (c.cpf || '').replace(/\D/g, '') === do
         }
         let equipamento = appData.equipamentos.find(e => e.numeroSerie === numeroSerie && e.clienteId === cliente.id);
         if (!equipamento) { 
-          const newEid = await saveDocument('equipamentos', { numeroSerie, tipo: 'Importado', marca: 'Importado', modelo: '', ano: '2020', cor: '', clienteId: cliente.id });
-          equipamento = { id: newEid, numeroSerie, tipo: 'Importado', marca: 'Importado', modelo: '', ano: '2020', cor: '', clienteId: cliente.id }; 
+          const newEid = await saveDocument('equipamentos', { numeroSerie, tipo: 'Importado', descricao: 'Importado via planilha', clienteId: cliente.id });
+          equipamento = { id: newEid, numeroSerie, tipo: 'Importado', descricao: 'Importado via planilha', clienteId: cliente.id }; 
           appData.equipamentos.push(equipamento); 
         }
         const nextNum = appData.ordens.length + 1;
@@ -1264,7 +1300,7 @@ function updateDashboard() {
     tr.innerHTML = `
       <td>${escapeHTML(o.numero)}</td>
       <td>${nomeCliente}</td>
-      <td>${equipamento ? `${escapeHTML(equipamento.numeroSerie)} - ${escapeHTML(equipamento.marca)}` : '-'}</td>
+      <td>${equipamento ? `${escapeHTML(equipamento.numeroSerie)} - ${escapeHTML(equipamento.tipo)}` : '-'}</td>
       <td>${formatDate(o.dataEntrada)}</td>
       <td>${formatCurrency(o.valorTotal)}</td>
       <td><span class="status-badge status-${escapeHTML(o.status)}">${getStatusLabel(o.status)}</span></td>`;
@@ -1273,7 +1309,7 @@ function updateDashboard() {
 }
 
 // ==========================================
-// 13. UTILITÁRIOS E BACKUP
+// 15. UTILITÁRIOS E BACKUP
 // ==========================================
 function formatCurrency(value) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value || 0);
@@ -1352,39 +1388,141 @@ document.addEventListener('click', function(e) {
 });
 
 // ==========================================
-// MÁSCARAS DE CPF / CNPJ (digita só números)
+// 16. CALENDÁRIO DE ORDENS DE SERVIÇO
 // ==========================================
-function maskCPF(value) {
-  return value
-    .replace(/\D/g, '')
-    .slice(0, 11)
-    .replace(/(\d{3})(\d)/, '$1.$2')
-    .replace(/(\d{3})(\d)/, '$1.$2')
-    .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+function toDateStr(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-function maskCNPJ(value) {
-  return value
-    .replace(/\D/g, '')
-    .slice(0, 14)
-    .replace(/(\d{2})(\d)/, '$1.$2')
-    .replace(/(\d{3})(\d)/, '$1.$2')
-    .replace(/(\d{3})(\d)/, '$1/$2')
-    .replace(/(\d{4})(\d{1,2})$/, '$1-$2');
+function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+function getEventosDoDia(dateStr) {
+  const eventos = [];
+  appData.ordens.forEach(o => {
+    const cliente = appData.clientes.find(c => c.id === o.clienteId);
+    const nome = cliente ? (cliente.tipo === 'PJ' ? cliente.razaoSocial : cliente.nome) : '';
+    const sufixo = nome ? ' • ' + nome : '';
+    if (o.dataEntrada === dateStr) eventos.push({ tipo: 'entrada', os: o, label: `Entrada: ${o.numero}${sufixo}` });
+    if (o.dataPrevisao === dateStr) eventos.push({ tipo: 'previsao', os: o, label: `Previsão: ${o.numero}${sufixo}` });
+  });
+  return eventos;
 }
 
-function setupMasks() {
-  const cpf = document.getElementById('clienteCpf');
-  const cnpj = document.getElementById('clienteCnpj');
-  const empresaCnpj = document.getElementById('empresaCnpj');
+function setCalendarView(v) {
+  calendarView = v;
+  document.getElementById('btnViewDia').classList.toggle('active', v === 'dia');
+  document.getElementById('btnViewSemana').classList.toggle('active', v === 'semana');
+  document.getElementById('btnViewMes').classList.toggle('active', v === 'mes');
+  renderCalendar();
+}
 
-  cpf.addEventListener('input', () => { cpf.value = maskCPF(cpf.value); });
-  cnpj.addEventListener('input', () => { cnpj.value = maskCNPJ(cnpj.value); });
-  empresaCnpj.addEventListener('input', () => { empresaCnpj.value = maskCNPJ(empresaCnpj.value); });
+function calendarHoje() { calendarDate = new Date(); renderCalendar(); }
+function calendarPrev() { shiftCalendar(-1); }
+function calendarNext() { shiftCalendar(1); }
+
+function shiftCalendar(dir) {
+  if (calendarView === 'mes') calendarDate.setMonth(calendarDate.getMonth() + dir, 1);
+  else if (calendarView === 'semana') calendarDate.setDate(calendarDate.getDate() + dir * 7);
+  else calendarDate.setDate(calendarDate.getDate() + dir);
+  renderCalendar();
+}
+
+function updateCalendarTitle() {
+  const el = document.getElementById('calendarTitle');
+  if (calendarView === 'mes') {
+    el.textContent = capitalize(calendarDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }));
+  } else if (calendarView === 'semana') {
+    const monday = new Date(calendarDate);
+    monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
+    const sunday = new Date(monday); sunday.setDate(sunday.getDate() + 6);
+    el.textContent = `Semana ${String(monday.getDate()).padStart(2,'0')}/${String(monday.getMonth()+1).padStart(2,'0')} a ${String(sunday.getDate()).padStart(2,'0')}/${String(sunday.getMonth()+1).padStart(2,'0')}/${sunday.getFullYear()}`;
+  } else {
+    el.textContent = capitalize(calendarDate.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' }));
+  }
+}
+
+function renderCalendar() {
+  const body = document.getElementById('calendarBody');
+  if (!body) return;
+  if (calendarView === 'mes') renderMes(body);
+  else if (calendarView === 'semana') renderSemana(body);
+  else renderDia(body);
+  updateCalendarTitle();
+}
+
+function eventosHTML(eventos) {
+  return eventos.map(ev =>
+    `<button class="cal-event ${ev.tipo}" onclick="viewOS('${escapeHTML(ev.os.id)}')" title="${escapeHTML(ev.label)}">${escapeHTML(ev.label)}</button>`
+  ).join('');
+}
+
+function renderMes(body) {
+  const year = calendarDate.getFullYear();
+  const month = calendarDate.getMonth();
+  const offset = (new Date(year, month, 1).getDay() + 6) % 7;
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const rows = Math.ceil((offset + daysInMonth) / 7);
+  const start = new Date(year, month, 1 - offset);
+  const todayStr = toDateStr(new Date());
+
+  let html = '<div class="cal-grid cal-grid-head">' +
+    ['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'].map(d => `<div class="cal-weekday">${d}</div>`).join('') +
+    '</div><div class="cal-grid">';
+
+  const d = new Date(start);
+  for (let i = 0; i < rows * 7; i++) {
+    const ds = toDateStr(d);
+    html += `<div class="cal-cell${d.getMonth() !== month ? ' other-month' : ''}${ds === todayStr ? ' today' : ''}">
+      <span class="cal-day">${String(d.getDate()).padStart(2, '0')}</span>
+      <div class="cal-events">${eventosHTML(getEventosDoDia(ds))}</div>
+    </div>`;
+    d.setDate(d.getDate() + 1);
+  }
+  body.innerHTML = html + '</div>';
+}
+
+function renderSemana(body) {
+  const names = ['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
+  const monday = new Date(calendarDate);
+  monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
+  const todayStr = toDateStr(new Date());
+
+  let html = '<div class="cal-grid cal-grid-head">';
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday); d.setDate(d.getDate() + i);
+    html += `<div class="cal-weekday">${names[i]} ${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}</div>`;
+  }
+  html += '</div><div class="cal-grid">';
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday); d.setDate(d.getDate() + i);
+    const ds = toDateStr(d);
+    html += `<div class="cal-cell tall${ds === todayStr ? ' today' : ''}">
+      <span class="cal-day">${String(d.getDate()).padStart(2, '0')}</span>
+      <div class="cal-events">${eventosHTML(getEventosDoDia(ds))}</div>
+    </div>`;
+  }
+  body.innerHTML = html + '</div>';
+}
+
+function renderDia(body) {
+  const eventos = getEventosDoDia(toDateStr(calendarDate));
+  if (eventos.length === 0) {
+    body.innerHTML = '<div class="cal-day-empty"><i class="fas fa-calendar-day"></i><p>Nenhuma ordem de serviço nesta data.</p></div>';
+    return;
+  }
+  body.innerHTML = '<div class="cal-day-list">' + eventos.map(ev => `
+    <button class="cal-day-item" onclick="viewOS('${escapeHTML(ev.os.id)}')">
+      <i class="fas ${ev.tipo === 'entrada' ? 'fa-sign-in-alt' : 'fa-clock'}"></i>
+      <div>
+        <strong>${escapeHTML(ev.os.numero)}</strong>
+        <span>${ev.tipo === 'entrada' ? 'Entrada do equipamento' : 'Previsão de entrega'}</span>
+      </div>
+      <span class="status-badge status-${escapeHTML(ev.os.status)}">${getStatusLabel(ev.os.status)}</span>
+    </button>`).join('') + '</div>';
 }
 
 // ==========================================
-// 14. EXPOSIÇÃO DE FUNÇÕES GLOBAIS
+// 17. EXPOSIÇÃO DE FUNÇÕES GLOBAIS
 // ==========================================
 window.showSection = showSection;
 window.toggleSidebar = toggleSidebar;
@@ -1439,3 +1577,8 @@ window.limparLogs = limparLogs;
 window.exportarLogsExcel = exportarLogsExcel;
 window.registrarLog = registrarLog;
 window.toggleTipoCliente = toggleTipoCliente;
+window.setCalendarView = setCalendarView;
+window.calendarHoje = calendarHoje;
+window.calendarPrev = calendarPrev;
+window.calendarNext = calendarNext;
+window.renderCalendar = renderCalendar;
