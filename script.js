@@ -13,7 +13,7 @@ import {
 
 // ✅ CREDENCIAIS DO SEU PROJETO ASC DIGITAL
 const firebaseConfig = {
-  apiKey: "AIzaSyAbgF4rh9O4XMLJew2aWDzJoFr_oD-JtVY",
+  apiKey: "AIzaSyAbgF4rh9O4XMLJew2aWDzJoFR_oD-JtVY",
   authDomain: "ascdigital.firebaseapp.com",
   projectId: "ascdigital",
   storageBucket: "ascdigital.firebasestorage.app",
