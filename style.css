@@ -389,6 +389,46 @@ body { font-family: 'Inter', sans-serif; background: #f0f2f5; color: var(--dark)
 .os-print-total { text-align: right; padding: 20px; background: #f8f9fa; border-radius: var(--radius); }
 .os-print-total .total-final { font-size: 1.3rem; color: var(--primary-dark); font-weight: 700; }
 
+/* DADOS DE PAGAMENTO NA IMPRESSÃO DA OS */
+.os-print-payment {
+    margin-top: 40px;
+    padding: 25px;
+    border: 2px dashed var(--primary);
+    border-radius: var(--radius);
+    background: #fdfdfd;
+    page-break-inside: avoid; /* Evita quebra de página no meio do bloco */
+}
+.os-print-payment h4 {
+    color: var(--primary-dark);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.1rem;
+    border-bottom: 1px solid var(--gray-light);
+    padding-bottom: 10px;
+}
+.os-print-payment .payment-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px;
+}
+.os-print-payment .payment-item label {
+    font-size: 0.7rem;
+    color: var(--gray);
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+.os-print-payment .payment-item span {
+    font-size: 1rem;
+    color: var(--dark);
+    font-weight: 500;
+    word-break: break-word;
+}
+
 /* BACKUP E RESTAURAÇÃO */
 .backup-container {
     display: grid;
