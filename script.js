@@ -13,7 +13,7 @@ import {
 
 // ✅ CREDENCIAIS DO SEU PROJETO ASC DIGITAL
 const firebaseConfig = {
-  apiKey: "AIzaSyAbgF4rh9O4XMLJew2aWDzJoFR_oD-JtVY",
+  apiKey: "AIzaSyAbgF4rh9O4XMLJew2aWDzJoFr_oD-JtVY",
   authDomain: "ascdigital.firebaseapp.com",
   projectId: "ascdigital",
   storageBucket: "ascdigital.firebasestorage.app",
@@ -105,7 +105,12 @@ async function loadAllData() {
         cnpj: '',
         endereco: 'ASC Digital - Soluções Tecnológicas',
         telefone: '(11) 96400-9152',
-        email: 'contato@ascdigital.com.br'
+        email: 'contato@ascdigital.com.br',
+        nomeDestinatario: '',
+        banco: '',
+        agencia: '',
+        conta: '',
+        pix: ''
       };
       const newId = await saveDocument('dadosEmpresa', appData.dadosEmpresa);
       appData.dadosEmpresa.id = newId;
@@ -171,7 +176,6 @@ function setupLogin() {
           document.getElementById('adminSection').style.display = 'none'; 
         }
         updateDashboard();
-        // ✅ SEMPRE ENTRA NO CALENDÁRIO (tela inicial)
         calendarDate = new Date();
         calendarView = 'mes';
         showSection('calendario');
@@ -353,7 +357,6 @@ function toggleBusca(tipo) {
   else { campo.value = ''; tipo === 'clientes' ? loadClientes() : loadEquipamentos(); }
 }
 
-// Toggle Tipo de Cliente (PF/PJ)
 function toggleTipoCliente() {
   const tipo = document.getElementById('clienteTipo').value;
   const isPF = tipo === 'PF';
@@ -365,7 +368,6 @@ function toggleTipoCliente() {
   document.getElementById('grupoCnpjCliente').style.display = isPF ? 'none' : 'block';
   document.getElementById('grupoIE').style.display = isPF ? 'none' : 'block';
   
-  // CPF e CNPJ são opcionais - apenas Nome (PF) e Razão Social (PJ) são obrigatórios
   document.getElementById('clienteNome').required = isPF;
   document.getElementById('clienteRazaoSocial').required = !isPF;
 }
@@ -802,6 +804,43 @@ function viewOS(id) {
   const documentoCliente = cliente ? (cliente.tipo === 'PJ' ? cliente.cnpj : cliente.cpf) : '-';
   const labelDocCliente = cliente && cliente.tipo === 'PJ' ? 'CNPJ' : 'CPF';
 
+  // ✅ DADOS BANCÁRIOS E PIX
+  let dadosPagamentoHTML = '';
+  if (appData.dadosEmpresa && (appData.dadosEmpresa.pix || appData.dadosEmpresa.banco || appData.dadosEmpresa.conta)) {
+    dadosPagamentoHTML = `
+      <div class="os-print-payment">
+        <h4><i class="fas fa-money-check-alt"></i> Dados para Pagamento</h4>
+        <div class="payment-grid">
+          ${appData.dadosEmpresa.nomeDestinatario ? `
+            <div class="payment-item">
+              <label>Favorecido</label>
+              <span>${escapeHTML(appData.dadosEmpresa.nomeDestinatario)}</span>
+            </div>` : ''}
+          ${appData.dadosEmpresa.banco ? `
+            <div class="payment-item">
+              <label>Banco</label>
+              <span>${escapeHTML(appData.dadosEmpresa.banco)}</span>
+            </div>` : ''}
+          ${appData.dadosEmpresa.agencia ? `
+            <div class="payment-item">
+              <label>Agência</label>
+              <span>${escapeHTML(appData.dadosEmpresa.agencia)}</span>
+            </div>` : ''}
+          ${appData.dadosEmpresa.conta ? `
+            <div class="payment-item">
+              <label>Conta</label>
+              <span>${escapeHTML(appData.dadosEmpresa.conta)}</span>
+            </div>` : ''}
+          ${appData.dadosEmpresa.pix ? `
+            <div class="payment-item">
+              <label>Chave PIX</label>
+              <span style="font-weight: bold; color: var(--primary-dark);">${escapeHTML(appData.dadosEmpresa.pix)}</span>
+            </div>` : ''}
+        </div>
+      </div>
+    `;
+  }
+
   document.getElementById('osPrintContent').innerHTML = `
     <div class="os-print-header">
       <img src="logo.png" alt="ASC Digital" class="os-print-logo">
@@ -831,6 +870,7 @@ function viewOS(id) {
       <div class="total-row"><span>Valor dos Serviços:</span><span>${formatCurrency(o.totalMaoObra)}</span></div>
       <div class="total-row total-final"><span>VALOR TOTAL:</span><span>${formatCurrency(o.valorTotal)}</span></div>
     </div>
+    ${dadosPagamentoHTML}
     <div style="margin-top: 50px; display: grid; grid-template-columns: 1fr 1fr; gap: 50px; text-align: center;">
       <div><div style="border-top: 1px solid #333; padding-top: 10px;"><p>Assinatura do Cliente</p></div></div>
       <div><div style="border-top: 1px solid #333; padding-top: 10px;"><p>Assinatura do Responsável</p></div></div>
@@ -987,6 +1027,12 @@ function loadDadosEmpresa() {
   document.getElementById('empresaEndereco').value = appData.dadosEmpresa.endereco || '';
   document.getElementById('empresaTelefone').value = appData.dadosEmpresa.telefone || '';
   document.getElementById('empresaEmail').value = appData.dadosEmpresa.email || '';
+  // ✅ NOVOS CAMPOS BANCÁRIOS
+  document.getElementById('empresaNomeDestinatario').value = appData.dadosEmpresa.nomeDestinatario || '';
+  document.getElementById('empresaBanco').value = appData.dadosEmpresa.banco || '';
+  document.getElementById('empresaAgencia').value = appData.dadosEmpresa.agencia || '';
+  document.getElementById('empresaConta').value = appData.dadosEmpresa.conta || '';
+  document.getElementById('empresaPix').value = appData.dadosEmpresa.pix || '';
 }
 
 async function saveDadosEmpresa(e) {
@@ -996,7 +1042,13 @@ async function saveDadosEmpresa(e) {
     cnpj: document.getElementById('empresaCnpj').value,
     endereco: document.getElementById('empresaEndereco').value,
     telefone: document.getElementById('empresaTelefone').value,
-    email: document.getElementById('empresaEmail').value
+    email: document.getElementById('empresaEmail').value,
+    // ✅ NOVOS CAMPOS BANCÁRIOS
+    nomeDestinatario: document.getElementById('empresaNomeDestinatario').value,
+    banco: document.getElementById('empresaBanco').value,
+    agencia: document.getElementById('empresaAgencia').value,
+    conta: document.getElementById('empresaConta').value,
+    pix: document.getElementById('empresaPix').value
   };
   try {
     await saveDocument('dadosEmpresa', data, appData.dadosEmpresa.id);
